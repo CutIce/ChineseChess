@@ -3,6 +3,9 @@
 
 #include <QWidget>
 #include "Piece.h"
+#include "Step.h"
+#include <QVector>
+#include <QButtonGroup>
 
 
 #ifndef dist
@@ -32,7 +35,9 @@ public:
     Piece piece[32];
 
     int selected;
+    bool rotate;
 
+    QVector<Step> record;
 
     QPoint moveto;
 
@@ -43,8 +48,8 @@ public:
     virtual void paintEvent(QPaintEvent * event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
-    int isPiece(int row, int col);
-    int isMyPiece(int row, int col);
+    inline int isPiece(int row, int col);
+    inline int isMyPiece(int row, int col);
 
 
     inline bool checkMove(int sel_id, int to_row, int to_col, int to_id);
@@ -55,6 +60,10 @@ public:
     inline bool checkMoveBishop(int sel_id, int to_row, int to_col);
     inline bool checkMoveAdvisor(int sel_id, int to_row, int to_col);
     inline bool checkMovePawn(int sel_id, int to_row, int to_col);
+
+    void recordStep(int f_id, int t_id, int f_r, int f_c, int t_r, int t_c, bool isdead);
+    Step getLastStep();
+    void recall();
 
 
 signals:

@@ -44,6 +44,7 @@ Board::Board(QWidget *parent) : QWidget(parent)
     for (;i<32;++i) setPiece(i, 7, 2*(i-27)+1, 0, black, pawn); // 27 - 31
 
     selected = -1;
+    rotate = false;
 }
 
 inline void Board::setPiece(int id, int row, int col, bool dead, Color c, Type type) {
@@ -172,7 +173,7 @@ void Board::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 
-int Board::isMyPiece(int row, int col) {
+inline int Board::isMyPiece(int row, int col) {
     for (int i = 0; i < 32; ++i) {
         if (piece[i].row == row && piece[i].col == col && piece[i].color == mycolor && !piece[i].dead) return i;
         if (piece[i].row == row && piece[i].col == col && !piece[i].dead) return i;
@@ -180,7 +181,7 @@ int Board::isMyPiece(int row, int col) {
     return -1;
 }
 
-int Board::isPiece(int row, int col) {
+inline int Board::isPiece(int row, int col) {
     for (int i = 0; i < 32; ++i) {
         if (piece[i].row == row && piece[i].col == col && !piece[i].dead) return i;
     }
@@ -250,8 +251,10 @@ inline bool Board::checkMoveCannon(int sel_id, int to_row, int to_col) {
     int sel_col = piece[sel_id].col;
     int small, big;
     int existPiece = 0;
-
     if ((sel_row != to_row) && (sel_col != to_col)) return 0;
+
+    int move_to = isPiece(to_row, to_col);
+
     if (sel_row == to_row){
         if (sel_col < to_col) {small = sel_col+1; big = to_col;}
         else {small = to_col + 1; big = sel_col;}
@@ -266,7 +269,9 @@ inline bool Board::checkMoveCannon(int sel_id, int to_row, int to_col) {
         }
     }
 
-    return existPiece > 1 ? 0 : 1;
+    if (move_to != -1 && existPiece == 1) return 1;
+    if (move_to == -1 && existPiece == 0) return 1;
+    return 0;
 }
 
 inline bool Board::checkMoveBishop(int sel_id, int to_row, int to_col) {
@@ -354,4 +359,23 @@ inline bool Board::checkMove(int sel_id, int to_row, int to_col, int to_id) {
         return 1;
     }
     return 0;
+}
+
+
+void Board::recordStep(int f_id, int t_id, int f_r, int f_c, int t_r, int t_c, bool isdead) {
+    Step tmp(f_id, t_id, f_r, f_c, t_r, t_c, isdead);
+    record.append(tmp);
+}
+
+Step Board::getLastStep() {
+    Step tmp = record.back();
+    record.pop_back();
+    return tmp;
+}
+
+void Board::recall() {
+    Step last = getLastStep();
+    if (last.isToDead) piece[last.to_id].dead = false;
+    piece[last.from_id].row = last.from_row;
+    piece[last.from_id].col = last.from_col;
 }
